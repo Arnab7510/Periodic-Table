@@ -12,7 +12,6 @@
             --glass: rgba(30, 41, 59, 0.7);
             --border: rgba(255, 255, 255, 0.1);
             --accent: #38bdf8;
-            /* Vibrant Scientific Colors */
             --alkali: #ef4444; --alkaline: #f97316; --transition: #facc15;
             --post-trans: #10b981; --metalloid: #06b6d4; --nonmetal: #3b82f6;
             --noble: #a855f7; --lanthanide: #ec4899; --actinide: #8b5cf6;
@@ -24,71 +23,93 @@
             color: #f8fafc;
             font-family: 'Inter', sans-serif;
             margin: 0;
-            padding: 20px;
+            padding: 10px;
             min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
-        header { text-align: center; margin-bottom: 30px; }
+        header { text-align: center; margin-bottom: 20px; width: 100%; }
         header h1 { 
+            font-size: clamp(1.5rem, 5vw, 2.5rem);
             font-weight: 900; 
-            letter-spacing: -2px; 
-            margin: 0; 
+            letter-spacing: -1px; 
+            margin: 10px 0; 
             background: linear-gradient(to right, #fff, var(--accent));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
         #search { 
-            padding: 14px 25px; width: 100%; max-width: 500px; 
+            padding: 12px 20px; width: 90%; max-width: 500px; 
             border-radius: 30px; border: 1px solid var(--border);
             background: var(--glass); color: white; 
-            margin: 20px auto; display: block;
+            margin: 10px auto; display: block;
             backdrop-filter: blur(10px);
             transition: border 0.3s;
+            font-size: 16px; /* Prevents iOS auto-zoom */
         }
         #search:focus { outline: none; border-color: var(--accent); }
 
         #detail-panel {
-            position: sticky; top: 20px; z-index: 1000;
+            position: sticky; top: 10px; z-index: 1000;
             background: var(--glass); backdrop-filter: blur(16px);
-            margin: 0 auto 40px; padding: 25px;
+            margin-bottom: 30px; padding: 15px;
             border-radius: 20px; border: 1px solid var(--border);
-            max-width: 900px; display: flex; gap: 30px; align-items: center;
+            width: 95%; max-width: 900px; 
+            display: flex; flex-direction: row; gap: 20px; align-items: center;
             box-shadow: 0 20px 50px rgba(0,0,0,0.5);
         }
 
-        .big-view { text-align: center; min-width: 140px; }
-        #big-symbol { font-size: 4rem; font-weight: 900; color: var(--accent); margin: 0; filter: drop-shadow(0 0 10px var(--accent)); }
+        .big-view { text-align: center; min-width: 100px; }
+        #big-symbol { font-size: 3rem; font-weight: 900; color: var(--accent); margin: 0; filter: drop-shadow(0 0 10px var(--accent)); }
         
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; width: 100%; }
-        .stat-item { background: rgba(255,255,255,0.03); padding: 10px 15px; border-radius: 12px; border: 1px solid var(--border); }
-        .stat-item strong { color: var(--accent); display: block; font-size: 0.7rem; text-transform: uppercase; margin-bottom: 4px; opacity: 0.8; }
-        .stat-item span { font-family: 'JetBrains Mono', monospace; font-size: 0.95rem; }
+        .stats-grid { 
+            display: grid; 
+            grid-template-columns: repeat(2, 1fr); 
+            gap: 8px; width: 100%; 
+        }
+        .stat-item { background: rgba(255,255,255,0.03); padding: 8px; border-radius: 10px; border: 1px solid var(--border); }
+        .stat-item strong { color: var(--accent); display: block; font-size: 0.6rem; text-transform: uppercase; opacity: 0.8; }
+        .stat-item span { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; word-break: break-all; }
 
-        .table-wrapper { width: 100%; overflow-x: auto; padding-bottom: 50px; scroll-behavior: smooth; }
+        /* The scaling container for Mobile */
+        .table-wrapper { 
+            width: 100%; 
+            display: flex;
+            justify-content: center;
+            overflow-x: auto; 
+            padding-bottom: 40px;
+        }
+
         #periodic-table {
-            display: grid; grid-template-columns: repeat(18, minmax(65px, 1fr));
-            grid-template-rows: repeat(10, minmax(75px, 1fr));
-            gap: 8px; min-width: 1300px; margin: 0 auto;
+            display: grid; 
+            grid-template-columns: repeat(18, 1fr);
+            grid-template-rows: repeat(10, 1fr);
+            gap: 4px; 
+            width: 1200px; /* Base width for desktop */
+            margin: 0 auto;
         }
 
         .element {
             background: var(--glass); border: 1px solid var(--border);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            cursor: pointer; transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
-            border-radius: 8px; position: relative;
+            cursor: pointer; transition: all 0.2s ease;
+            border-radius: 4px; position: relative;
+            aspect-ratio: 1 / 1.1;
         }
         .element:hover { 
-            transform: translateY(-5px) scale(1.05); 
+            transform: scale(1.15); 
             z-index: 50; 
-            background: rgba(255,255,255,0.1);
-            border-color: rgba(255,255,255,0.5);
+            background: rgba(255,255,255,0.15);
+            border-color: var(--accent);
             box-shadow: 0 10px 20px rgba(0,0,0,0.4);
         }
 
-        .num { font-size: 0.75rem; position: absolute; top: 6px; left: 8px; font-family: 'JetBrains Mono'; opacity: 0.6; }
-        .sym { font-size: 1.6rem; font-weight: 700; }
-        .name-label { font-size: 0.65rem; opacity: 0.5; margin-top: 2px; }
+        .num { font-size: 0.6rem; position: absolute; top: 4px; left: 5px; font-family: 'JetBrains Mono'; opacity: 0.6; }
+        .sym { font-size: 1.2rem; font-weight: 700; }
+        .name-label { font-size: 0.5rem; opacity: 0.5; text-align: center; display: block; white-space: nowrap; overflow: hidden; width: 90%; }
 
         /* Neon Indicators */
         .alkali { box-shadow: inset 0 -3px 0 var(--alkali); } 
@@ -102,9 +123,25 @@
         .actinide { box-shadow: inset 0 -3px 0 var(--actinide); }
 
         .hidden { display: none; }
-        @media (max-width: 768px) { 
-            #detail-panel { flex-direction: column; text-align: center; } 
-            .big-view { border: none; padding-bottom: 10px; }
+
+        /* Responsive Adjustments */
+        @media (max-width: 1250px) {
+            #periodic-table { transform: scale(0.8); transform-origin: top center; width: 1000px; }
+            .table-wrapper { height: 650px; }
+        }
+
+        @media (max-width: 800px) {
+            #detail-panel { flex-direction: column; gap: 10px; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            #periodic-table { transform: scale(0.5); width: 600px; gap: 2px; }
+            .table-wrapper { height: 450px; }
+            #big-symbol { font-size: 2.5rem; }
+        }
+
+        @media (max-width: 500px) {
+            #periodic-table { transform: scale(0.35); width: 400px; }
+            .table-wrapper { height: 320px; }
+            .stats-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -112,15 +149,15 @@
 
     <header>
         <h1>Periodic Table</h1>
-        <input type="text" id="search" placeholder="Search by name, symbol, or number...">
+        <input type="text" id="search" placeholder="Search element...">
     </header>
 
     <div id="detail-panel">
-        <div id="msg" style="width: 100%; text-align: center; opacity: 0.6;">Select an element to analyze quantum data</div>
+        <div id="msg" style="width: 100%; text-align: center; opacity: 0.6; font-size: 0.9rem;">Tap an element for quantum data</div>
         <div id="info" class="hidden" style="display:contents">
             <div class="big-view">
                 <p id="big-symbol">H</p>
-                <span id="el-name" style="font-weight: 700; letter-spacing: 1px;"></span>
+                <span id="el-name" style="font-weight: 700; letter-spacing: 1px; font-size: 0.8rem;"></span>
             </div>
             <div class="stats-grid">
                 <div class="stat-item"><strong>Atomic Number</strong> <span id="val-num"></span></div>
@@ -136,6 +173,7 @@
     </div>
 
     <script>
+        // Data remains exactly as provided
         const elements = [
             {n:1,s:'H',name:'Hydrogen',w:'1.008',cat:'nonmetal',c:1,r:1,o:'1s¹'},
             {n:2,s:'He',name:'Helium',w:'4.0026',cat:'noble',c:18,r:1,o:'1s²'},
@@ -281,6 +319,10 @@
                     document.getElementById('val-weight').innerText = el.w;
                     document.getElementById('val-cat').innerText = el.cat.replace('-', ' ');
                     document.getElementById('val-orbital').innerText = el.o;
+                    
+                    // Visual feedback for click
+                    document.querySelectorAll('.element').forEach(e => e.style.borderColor = '');
+                    div.style.borderColor = 'var(--accent)';
                 };
 
                 div.onmouseover = update;
