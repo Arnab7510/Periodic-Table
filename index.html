@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Periodic Table</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&family=JetBrains+Mono&display=swap');
+
+        :root {
+            --bg: #030712;
+            --glass: rgba(30, 41, 59, 0.7);
+            --border: rgba(255, 255, 255, 0.1);
+            --accent: #38bdf8;
+            /* Vibrant Scientific Colors */
+            --alkali: #ef4444; --alkaline: #f97316; --transition: #facc15;
+            --post-trans: #10b981; --metalloid: #06b6d4; --nonmetal: #3b82f6;
+            --noble: #a855f7; --lanthanide: #ec4899; --actinide: #8b5cf6;
+        }
+
+        body {
+            background-color: var(--bg);
+            background-image: radial-gradient(circle at 50% -20%, #1e293b 0%, #030712 100%);
+            color: #f8fafc;
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        header { text-align: center; margin-bottom: 30px; }
+        header h1 { 
+            font-weight: 900; 
+            letter-spacing: -2px; 
+            margin: 0; 
+            background: linear-gradient(to right, #fff, var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        #search { 
+            padding: 14px 25px; width: 100%; max-width: 500px; 
+            border-radius: 30px; border: 1px solid var(--border);
+            background: var(--glass); color: white; 
+            margin: 20px auto; display: block;
+            backdrop-filter: blur(10px);
+            transition: border 0.3s;
+        }
+        #search:focus { outline: none; border-color: var(--accent); }
+
+        #detail-panel {
+            position: sticky; top: 20px; z-index: 1000;
+            background: var(--glass); backdrop-filter: blur(16px);
+            margin: 0 auto 40px; padding: 25px;
+            border-radius: 20px; border: 1px solid var(--border);
+            max-width: 900px; display: flex; gap: 30px; align-items: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+
+        .big-view { text-align: center; min-width: 140px; }
+        #big-symbol { font-size: 4rem; font-weight: 900; color: var(--accent); margin: 0; filter: drop-shadow(0 0 10px var(--accent)); }
+        
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; width: 100%; }
+        .stat-item { background: rgba(255,255,255,0.03); padding: 10px 15px; border-radius: 12px; border: 1px solid var(--border); }
+        .stat-item strong { color: var(--accent); display: block; font-size: 0.7rem; text-transform: uppercase; margin-bottom: 4px; opacity: 0.8; }
+        .stat-item span { font-family: 'JetBrains Mono', monospace; font-size: 0.95rem; }
+
+        .table-wrapper { width: 100%; overflow-x: auto; padding-bottom: 50px; scroll-behavior: smooth; }
+        #periodic-table {
+            display: grid; grid-template-columns: repeat(18, minmax(65px, 1fr));
+            grid-template-rows: repeat(10, minmax(75px, 1fr));
+            gap: 8px; min-width: 1300px; margin: 0 auto;
+        }
+
+        .element {
+            background: var(--glass); border: 1px solid var(--border);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            cursor: pointer; transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+            border-radius: 8px; position: relative;
+        }
+        .element:hover { 
+            transform: translateY(-5px) scale(1.05); 
+            z-index: 50; 
+            background: rgba(255,255,255,0.1);
+            border-color: rgba(255,255,255,0.5);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+        }
+
+        .num { font-size: 0.75rem; position: absolute; top: 6px; left: 8px; font-family: 'JetBrains Mono'; opacity: 0.6; }
+        .sym { font-size: 1.6rem; font-weight: 700; }
+        .name-label { font-size: 0.65rem; opacity: 0.5; margin-top: 2px; }
+
+        /* Neon Indicators */
+        .alkali { box-shadow: inset 0 -3px 0 var(--alkali); } 
+        .alkaline { box-shadow: inset 0 -3px 0 var(--alkaline); }
+        .transition { box-shadow: inset 0 -3px 0 var(--transition); } 
+        .post-trans { box-shadow: inset 0 -3px 0 var(--post-trans); }
+        .metalloid { box-shadow: inset 0 -3px 0 var(--metalloid); } 
+        .nonmetal { box-shadow: inset 0 -3px 0 var(--nonmetal); }
+        .noble { box-shadow: inset 0 -3px 0 var(--noble); } 
+        .lanthanide { box-shadow: inset 0 -3px 0 var(--lanthanide); }
+        .actinide { box-shadow: inset 0 -3px 0 var(--actinide); }
+
+        .hidden { display: none; }
+        @media (max-width: 768px) { 
+            #detail-panel { flex-direction: column; text-align: center; } 
+            .big-view { border: none; padding-bottom: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Periodic Table</h1>
+        <input type="text" id="search" placeholder="Search by name, symbol, or number...">
+    </header>
+
+    <div id="detail-panel">
+        <div id="msg" style="width: 100%; text-align: center; opacity: 0.6;">Select an element to analyze quantum data</div>
+        <div id="info" class="hidden" style="display:contents">
+            <div class="big-view">
+                <p id="big-symbol">H</p>
+                <span id="el-name" style="font-weight: 700; letter-spacing: 1px;"></span>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-item"><strong>Atomic Number</strong> <span id="val-num"></span></div>
+                <div class="stat-item"><strong>Atomic Weight</strong> <span id="val-weight"></span></div>
+                <div class="stat-item"><strong>Group Category</strong> <span id="val-cat"></span></div>
+                <div class="stat-item"><strong>Electron Config</strong> <span id="val-orbital"></span></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-wrapper">
+        <main id="periodic-table"></main>
+    </div>
+
+    <script>
+        const elements = [
+            {n:1,s:'H',name:'Hydrogen',w:'1.008',cat:'nonmetal',c:1,r:1,o:'1s¹'},
+            {n:2,s:'He',name:'Helium',w:'4.0026',cat:'noble',c:18,r:1,o:'1s²'},
+            {n:3,s:'Li',name:'Lithium',w:'6.94',cat:'alkali',c:1,r:2,o:'[He] 2s¹'},
+            {n:4,s:'Be',name:'Beryllium',w:'9.0122',cat:'alkaline',c:2,r:2,o:'[He] 2s²'},
+            {n:5,s:'B',name:'Boron',w:'10.81',cat:'metalloid',c:13,r:2,o:'[He] 2s² 2p¹'},
+            {n:6,s:'C',name:'Carbon',w:'12.011',cat:'nonmetal',c:14,r:2,o:'[He] 2s² 2p²'},
+            {n:7,s:'N',name:'Nitrogen',w:'14.007',cat:'nonmetal',c:15,r:2,o:'[He] 2s² 2p³'},
+            {n:8,s:'O',name:'Oxygen',w:'15.999',cat:'nonmetal',c:16,r:2,o:'[He] 2s² 2p⁴'},
+            {n:9,s:'F',name:'Fluorine',w:'18.998',cat:'nonmetal',c:17,r:2,o:'[He] 2s² 2p⁵'},
+            {n:10,s:'Ne',name:'Neon',w:'20.180',cat:'noble',c:18,r:2,o:'[He] 2s² 2p⁶'},
+            {n:11,s:'Na',name:'Sodium',w:'22.990',cat:'alkali',c:1,r:3,o:'[Ne] 3s¹'},
+            {n:12,s:'Mg',name:'Magnesium',w:'24.305',cat:'alkaline',c:2,r:3,o:'[Ne] 3s²'},
+            {n:13,s:'Al',name:'Aluminium',w:'26.982',cat:'post-trans',c:13,r:3,o:'[Ne] 3s² 3p¹'},
+            {n:14,s:'Si',name:'Silicon',w:'28.085',cat:'metalloid',c:14,r:3,o:'[Ne] 3s² 3p²'},
+            {n:15,s:'P',name:'Phosphorus',w:'30.974',cat:'nonmetal',c:15,r:3,o:'[Ne] 3s² 3p³'},
+            {n:16,s:'S',name:'Sulfur',w:'32.06',cat:'nonmetal',c:16,r:3,o:'[Ne] 3s² 3p⁴'},
+            {n:17,s:'Cl',name:'Chlorine',w:'35.45',cat:'nonmetal',c:17,r:3,o:'[Ne] 3s² 3p⁵'},
+            {n:18,s:'Ar',name:'Argon',w:'39.948',cat:'noble',c:18,r:3,o:'[Ne] 3s² 3p⁶'},
+            {n:19,s:'K',name:'Potassium',w:'39.098',cat:'alkali',c:1,r:4,o:'[Ar] 4s¹'},
+            {n:20,s:'Ca',name:'Calcium',w:'40.078',cat:'alkaline',c:2,r:4,o:'[Ar] 4s²'},
+            {n:21,s:'Sc',name:'Scandium',w:'44.956',cat:'transition',c:3,r:4,o:'[Ar] 3d¹ 4s²'},
+            {n:22,s:'Ti',name:'Titanium',w:'47.867',cat:'transition',c:4,r:4,o:'[Ar] 3d² 4s²'},
+            {n:23,s:'V',name:'Vanadium',w:'50.942',cat:'transition',c:5,r:4,o:'[Ar] 3d³ 4s²'},
+            {n:24,s:'Cr',name:'Chromium',w:'51.996',cat:'transition',c:6,r:4,o:'[Ar] 3d⁵ 4s¹'},
+            {n:25,s:'Mn',name:'Manganese',w:'54.938',cat:'transition',c:7,r:4,o:'[Ar] 3d⁵ 4s²'},
+            {n:26,s:'Fe',name:'Iron',w:'55.845',cat:'transition',c:8,r:4,o:'[Ar] 3d⁶ 4s²'},
+            {n:27,s:'Co',name:'Cobalt',w:'58.933',cat:'transition',c:9,r:4,o:'[Ar] 3d⁷ 4s²'},
+            {n:28,s:'Ni',name:'Nickel',w:'58.693',cat:'transition',c:10,r:4,o:'[Ar] 3d⁸ 4s²'},
+            {n:29,s:'Cu',name:'Copper',w:'63.546',cat:'transition',c:11,r:4,o:'[Ar] 3d¹⁰ 4s¹'},
+            {n:30,s:'Zn',name:'Zinc',w:'65.38',cat:'transition',c:12,r:4,o:'[Ar] 3d¹⁰ 4s²'},
+            {n:31,s:'Ga',name:'Gallium',w:'69.723',cat:'post-trans',c:13,r:4,o:'[Ar] 3d¹⁰ 4s² 4p¹'},
+            {n:32,s:'Ge',name:'Germanium',w:'72.63',cat:'metalloid',c:14,r:4,o:'[Ar] 3d¹⁰ 4s² 4p²'},
+            {n:33,s:'As',name:'Arsenic',w:'74.922',cat:'metalloid',c:15,r:4,o:'[Ar] 3d¹⁰ 4s² 4p³'},
+            {n:34,s:'Se',name:'Selenium',w:'78.971',cat:'nonmetal',c:16,r:4,o:'[Ar] 3d¹⁰ 4s² 4p⁴'},
+            {n:35,s:'Br',name:'Bromine',w:'79.904',cat:'nonmetal',c:17,r:4,o:'[Ar] 3d¹⁰ 4s² 4p⁵'},
+            {n:36,s:'Kr',name:'Krypton',w:'83.798',cat:'noble',c:18,r:4,o:'[Ar] 3d¹⁰ 4s² 4p⁶'},
+            {n:37,s:'Rb',name:'Rubidium',w:'85.468',cat:'alkali',c:1,r:5,o:'[Kr] 5s¹'},
+            {n:38,s:'Sr',name:'Strontium',w:'87.62',cat:'alkaline',c:2,r:5,o:'[Kr] 5s²'},
+            {n:39,s:'Y',name:'Yttrium',w:'88.906',cat:'transition',c:3,r:5,o:'[Kr] 4d¹ 5s²'},
+            {n:40,s:'Zr',name:'Zirconium',w:'91.224',cat:'transition',c:4,r:5,o:'[Kr] 4d² 5s²'},
+            {n:41,s:'Nb',name:'Niobium',w:'92.906',cat:'transition',c:5,r:5,o:'[Kr] 4d⁴ 5s¹'},
+            {n:42,s:'Mo',name:'Molybdenum',w:'95.95',cat:'transition',c:6,r:5,o:'[Kr] 4d⁵ 5s¹'},
+            {n:43,s:'Tc',name:'Technetium',w:'98',cat:'transition',c:7,r:5,o:'[Kr] 4d⁵ 5s²'},
+            {n:44,s:'Ru',name:'Ruthenium',w:'101.07',cat:'transition',c:8,r:5,o:'[Kr] 4d⁷ 5s¹'},
+            {n:45,s:'Rh',name:'Rhodium',w:'102.91',cat:'transition',c:9,r:5,o:'[Kr] 4d⁸ 5s¹'},
+            {n:46,s:'Pd',name:'Palladium',w:'106.42',cat:'transition',c:10,r:5,o:'[Kr] 4d¹⁰'},
+            {n:47,s:'Ag',name:'Silver',w:'107.87',cat:'transition',c:11,r:5,o:'[Kr] 4d¹⁰ 5s¹'},
+            {n:48,s:'Cd',name:'Cadmium',w:'112.41',cat:'transition',c:12,r:5,o:'[Kr] 4d¹⁰ 5s²'},
+            {n:49,s:'In',name:'Indium',w:'114.82',cat:'post-trans',c:13,r:5,o:'[Kr] 4d¹⁰ 5s² 5p¹'},
+            {n:50,s:'Sn',name:'Tin',w:'118.71',cat:'post-trans',c:14,r:5,o:'[Kr] 4d¹⁰ 5s² 5p²'},
+            {n:51,s:'Sb',name:'Antimony',w:'121.76',cat:'metalloid',c:15,r:5,o:'[Kr] 4d¹⁰ 5s² 5p³'},
+            {n:52,s:'Te',name:'Tellurium',w:'127.60',cat:'metalloid',c:16,r:5,o:'[Kr] 4d¹⁰ 5s² 5p⁴'},
+            {n:53,s:'I',name:'Iodine',w:'126.90',cat:'nonmetal',c:17,r:5,o:'[Kr] 4d¹⁰ 5s² 5p⁵'},
+            {n:54,s:'Xe',name:'Xenon',w:'131.29',cat:'noble',c:18,r:5,o:'[Kr] 4d¹⁰ 5s² 5p⁶'},
+            {n:55,s:'Cs',name:'Caesium',w:'132.91',cat:'alkali',c:1,r:6,o:'[Xe] 6s¹'},
+            {n:56,s:'Ba',name:'Barium',w:'137.33',cat:'alkaline',c:2,r:6,o:'[Xe] 6s²'},
+            {n:57,s:'La',name:'Lanthanum',w:'138.91',cat:'lanthanide',c:4,r:9,o:'[Xe] 5d¹ 6s²'},
+            {n:58,s:'Ce',name:'Cerium',w:'140.12',cat:'lanthanide',c:5,r:9,o:'[Xe] 4f¹ 5d¹ 6s²'},
+            {n:59,s:'Pr',name:'Praseodymium',w:'140.91',cat:'lanthanide',c:6,r:9,o:'[Xe] 4f³ 6s²'},
+            {n:60,s:'Nd',name:'Neodymium',w:'144.24',cat:'lanthanide',c:7,r:9,o:'[Xe] 4f⁴ 6s²'},
+            {n:61,s:'Pm',name:'Promethium',w:'145',cat:'lanthanide',c:8,r:9,o:'[Xe] 4f⁵ 6s²'},
+            {n:62,s:'Sm',name:'Samarium',w:'150.36',cat:'lanthanide',c:9,r:9,o:'[Xe] 4f⁶ 6s²'},
+            {n:63,s:'Eu',name:'Europium',w:'151.96',cat:'lanthanide',c:10,r:9,o:'[Xe] 4f⁷ 6s²'},
+            {n:64,s:'Gd',name:'Gadolinium',w:'157.25',cat:'lanthanide',c:11,r:9,o:'[Xe] 4f⁷ 5d¹ 6s²'},
+            {n:65,s:'Tb',name:'Terbium',w:'158.93',cat:'lanthanide',c:12,r:9,o:'[Xe] 4f⁹ 6s²'},
+            {n:66,s:'Dy',name:'Dysprosium',w:'162.50',cat:'lanthanide',c:13,r:9,o:'[Xe] 4f¹⁰ 6s²'},
+            {n:67,s:'Ho',name:'Holmium',w:'164.93',cat:'lanthanide',c:14,r:9,o:'[Xe] 4f¹¹ 6s²'},
+            {n:68,s:'Er',name:'Erbium',w:'167.26',cat:'lanthanide',c:15,r:9,o:'[Xe] 4f¹² 6s²'},
+            {n:69,s:'Tm',name:'Thulium',w:'168.93',cat:'lanthanide',c:16,r:9,o:'[Xe] 4f¹³ 6s²'},
+            {n:70,s:'Yb',name:'Ytterbium',w:'173.05',cat:'lanthanide',c:17,r:9,o:'[Xe] 4f¹⁴ 6s²'},
+            {n:71,s:'Lu',name:'Lutetium',w:'174.97',cat:'lanthanide',c:18,r:9,o:'[Xe] 4f¹⁴ 5d¹ 6s²'},
+            {n:72,s:'Hf',name:'Hafnium',w:'178.49',cat:'transition',c:4,r:6,o:'[Xe] 4f¹⁴ 5d² 6s²'},
+            {n:73,s:'Ta',name:'Tantalum',w:'180.95',cat:'transition',c:5,r:6,o:'[Xe] 4f¹⁴ 5d³ 6s²'},
+            {n:74,s:'W',name:'Tungsten',w:'183.84',cat:'transition',c:6,r:6,o:'[Xe] 4f¹⁴ 5d⁴ 6s²'},
+            {n:75,s:'Re',name:'Rhenium',w:'186.21',cat:'transition',c:7,r:6,o:'[Xe] 4f¹⁴ 5d⁵ 6s²'},
+            {n:76,s:'Os',name:'Osmium',w:'190.23',cat:'transition',c:8,r:6,o:'[Xe] 4f¹⁴ 5d⁶ 6s²'},
+            {n:77,s:'Ir',name:'Iridium',w:'192.22',cat:'transition',c:9,r:6,o:'[Xe] 4f¹⁴ 5d⁷ 6s²'},
+            {n:78,s:'Pt',name:'Platinum',w:'195.08',cat:'transition',c:10,r:6,o:'[Xe] 4f¹⁴ 5d⁹ 6s¹'},
+            {n:79,s:'Au',name:'Gold',w:'196.97',cat:'transition',c:11,r:6,o:'[Xe] 4f¹⁴ 5d¹⁰ 6s¹'},
+            {n:80,s:'Hg',name:'Mercury',w:'200.59',cat:'transition',c:12,r:6,o:'[Xe] 4f¹⁴ 5d¹⁰ 6s²'},
+            {n:81,s:'Tl',name:'Thallium',w:'204.38',cat:'post-trans',c:13,r:6,o:'[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p¹'},
+            {n:82,s:'Pb',name:'Lead',w:'207.2',cat:'post-trans',c:14,r:6,o:'[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p²'},
+            {n:83,s:'Bi',name:'Bismuth',w:'208.98',cat:'post-trans',c:15,r:6,o:'[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p³'},
+            {n:84,s:'Po',name:'Polonium',w:'209',cat:'post-trans',c:16,r:6,o:'[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p⁴'},
+            {n:85,s:'At',name:'Astatine',w:'210',cat:'metalloid',c:17,r:6,o:'[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p⁵'},
+            {n:86,s:'Rn',name:'Radon',w:'222',cat:'noble',c:18,r:6,o:'[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p⁶'},
+            {n:87,s:'Fr',name:'Francium',w:'223',cat:'alkali',c:1,r:7,o:'[Rn] 7s¹'},
+            {n:88,s:'Ra',name:'Radium',w:'226',cat:'alkaline',c:2,r:7,o:'[Rn] 7s²'},
+            {n:89,s:'Ac',name:'Actinium',w:'227',cat:'actinide',c:4,r:10,o:'[Rn] 6d¹ 7s²'},
+            {n:90,s:'Th',name:'Thorium',w:'232.04',cat:'actinide',c:5,r:10,o:'[Rn] 6d² 7s²'},
+            {n:91,s:'Pa',name:'Protactinium',w:'231.04',cat:'actinide',c:6,r:10,o:'[Rn] 5f² 6d¹ 7s²'},
+            {n:92,s:'U',name:'Uranium',w:'238.03',cat:'actinide',c:7,r:10,o:'[Rn] 5f³ 6d¹ 7s²'},
+            {n:93,s:'Np',name:'Neptunium',w:'237',cat:'actinide',c:8,r:10,o:'[Rn] 5f⁴ 6d¹ 7s²'},
+            {n:94,s:'Pu',name:'Plutonium',w:'244',cat:'actinide',c:9,r:10,o:'[Rn] 5f⁶ 7s²'},
+            {n:95,s:'Am',name:'Americium',w:'243',cat:'actinide',c:10,r:10,o:'[Rn] 5f⁷ 7s²'},
+            {n:96,s:'Cm',name:'Curium',w:'247',cat:'actinide',c:11,r:10,o:'[Rn] 5f⁷ 6d¹ 7s²'},
+            {n:97,s:'Bk',name:'Berkelium',w:'247',cat:'actinide',c:12,r:10,o:'[Rn] 5f⁹ 7s²'},
+            {n:98,s:'Cf',name:'Californium',w:'251',cat:'actinide',c:13,r:10,o:'[Rn] 5f¹⁰ 7s²'},
+            {n:99,s:'Es',name:'Einsteinium',w:'252',cat:'actinide',c:14,r:10,o:'[Rn] 5f¹¹ 7s²'},
+            {n:100,s:'Fm',name:'Fermium',w:'257',cat:'actinide',c:15,r:10,o:'[Rn] 5f¹² 7s²'},
+            {n:101,s:'Md',name:'Mendelevium',w:'258',cat:'actinide',c:16,r:10,o:'[Rn] 5f¹³ 7s²'},
+            {n:102,s:'No',name:'Nobelium',w:'259',cat:'actinide',c:17,r:10,o:'[Rn] 5f¹⁴ 7s²'},
+            {n:103,s:'Lr',name:'Lawrencium',w:'262',cat:'actinide',c:18,r:10,o:'[Rn] 5f¹⁴ 7s² 7p¹'},
+            {n:104,s:'Rf',name:'Rutherfordium',w:'267',cat:'transition',c:4,r:7,o:'[Rn] 5f¹⁴ 6d² 7s²'},
+            {n:105,s:'Db',name:'Dubnium',w:'270',cat:'transition',c:5,r:7,o:'[Rn] 5f¹⁴ 6d³ 7s²'},
+            {n:106,s:'Sg',name:'Seaborgium',w:'271',cat:'transition',c:6,r:7,o:'[Rn] 5f¹⁴ 6d⁴ 7s²'},
+            {n:107,s:'Bh',name:'Bohrium',w:'270',cat:'transition',c:7,r:7,o:'[Rn] 5f¹⁴ 6d⁵ 7s²'},
+            {n:108,s:'Hs',name:'Hassium',w:'277',cat:'transition',c:8,r:7,o:'[Rn] 5f¹⁴ 6d⁶ 7s²'},
+            {n:109,s:'Mt',name:'Meitnerium',w:'278',cat:'transition',c:9,r:7,o:'[Rn] 5f¹⁴ 6d⁷ 7s²'},
+            {n:110,s:'Ds',name:'Darmstadtium',w:'281',cat:'transition',c:10,r:7,o:'[Rn] 5f¹⁴ 6d⁸ 7s²'},
+            {n:111,s:'Rg',name:'Roentgenium',w:'280',cat:'transition',c:11,r:7,o:'[Rn] 5f¹⁴ 6d⁹ 7s²'},
+            {n:112,s:'Cn',name:'Copernicium',w:'285',cat:'transition',c:12,r:7,o:'[Rn] 5f¹⁴ 6d¹⁰ 7s²'},
+            {n:113,s:'Nh',name:'Nihonium',w:'284',cat:'post-trans',c:13,r:7,o:'[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p¹'},
+            {n:114,s:'Fl',name:'Flerovium',w:'289',cat:'post-trans',c:14,r:7,o:'[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p²'},
+            {n:115,s:'Mc',name:'Moscovium',w:'288',cat:'post-trans',c:15,r:7,o:'[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p³'},
+            {n:116,s:'Lv',name:'Livermorium',w:'293',cat:'post-trans',c:16,r:7,o:'[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p⁴'},
+            {n:117,s:'Ts',name:'Tennessine',w:'294',cat:'metalloid',c:17,r:7,o:'[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p⁵'},
+            {n:118,s:'Og',name:'Oganesson',w:'294',cat:'noble',c:18,r:7,o:'[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p⁶'}
+        ];
+
+        const grid = document.getElementById('periodic-table');
+        const info = document.getElementById('info');
+        const msg = document.getElementById('msg');
+
+        function render(filter = "") {
+            grid.innerHTML = "";
+            elements.forEach(el => {
+                if (filter && !el.name.toLowerCase().includes(filter) && !el.s.toLowerCase().includes(filter) && !String(el.n).includes(filter)) return;
+
+                const div = document.createElement('div');
+                div.className = `element ${el.cat}`;
+                div.style.gridColumn = el.c;
+                div.style.gridRow = el.r;
+                div.innerHTML = `<span class="num">${el.n}</span><span class="sym">${el.s}</span><span class="name-label">${el.name}</span>`;
+
+                const update = () => {
+                    msg.style.display = 'none';
+                    info.classList.remove('hidden');
+                    document.getElementById('el-name').innerText = el.name.toUpperCase();
+                    document.getElementById('big-symbol').innerText = el.s;
+                    document.getElementById('val-num').innerText = el.n;
+                    document.getElementById('val-weight').innerText = el.w;
+                    document.getElementById('val-cat').innerText = el.cat.replace('-', ' ');
+                    document.getElementById('val-orbital').innerText = el.o;
+                };
+
+                div.onmouseover = update;
+                div.onclick = update;
+                grid.appendChild(div);
+            });
+        }
+
+        document.getElementById('search').oninput = (e) => render(e.target.value.toLowerCase());
+        render();
+    </script>
+</body>
+</html>
