@@ -3,282 +3,133 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quantum Periodic Table - Interstellar Edition</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=JetBrains+Mono:wght@300;400&display=swap');
+    <title>Material Periodic Table</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Roboto', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        mat: {
+                            bg: '#121212',
+                            surface: '#1E1E1E',
+                            surfaceHover: '#2D2D2D',
+                            border: '#333333',
+                            primary: '#90CAF9',
+                            textPrimary: '#FFFFFF',
+                            textSecondary: '#B3B3B3'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
 
-        :root {
-            /* Deep Space Palette */
-            --bg-deep: #010409;
-            --bg-nebula: #0d1117;
-            --glass: rgba(13, 17, 23, 0.7);
-            --glass-bright: rgba(56, 189, 248, 0.1);
-            --border: rgba(56, 189, 248, 0.15);
+    <style type="text/tailwindcss">
+        @layer utilities {
+            /* Custom scrollbar for the table wrapper */
+            .custom-scrollbar::-webkit-scrollbar {
+                @apply h-2;
+            }
+            .custom-scrollbar::-webkit-scrollbar-track {
+                @apply bg-[#1E1E1E] rounded-full;
+            }
+            .custom-scrollbar::-webkit-scrollbar-thumb {
+                @apply bg-[#424242] rounded-full hover:bg-[#616161] transition-colors;
+            }
+        }
+
+        @layer components {
+            .element {
+                @apply relative flex flex-col items-center justify-center cursor-pointer rounded bg-mat-surface border border-mat-border aspect-[1/1.15] transition-all duration-200 select-none;
+            }
             
-            /* Neon UI Colors */
-            --accent: #38bdf8;
-            --text-primary: #f8fafc;
-            --text-secondary: rgba(248, 250, 252, 0.7);
-            --panel-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
-            
-            /* Vivid Scientific Neons */
-            --alkali: #ff4747; --alkaline: #ff9f43; --transition: #ffff2e;
-            --post-trans: #24ff8b; --metalloid: #00e6ff; --nonmetal: #4d94ff;
-            --noble: #bc4cff; --lanthanide: #ff69b4; --actinide: #9d66ff;
+            .element:hover {
+                @apply scale-125 -translate-y-1 z-50 bg-mat-surfaceHover shadow-2xl border-white;
+            }
+
+            .element.selected {
+                @apply border-mat-primary bg-[#90CAF9]/10 shadow-[0_0_15px_rgba(144,202,249,0.2)];
+            }
+
+            /* Category Colors mapped to borders and text */
+            .alkali { @apply border-red-400/40 text-red-300; }
+            .alkaline { @apply border-orange-400/40 text-orange-300; }
+            .transition { @apply border-yellow-200/40 text-yellow-200; }
+            .post-trans { @apply border-green-400/40 text-green-300; }
+            .metalloid { @apply border-cyan-400/40 text-cyan-300; }
+            .nonmetal { @apply border-blue-400/40 text-blue-300; }
+            .noble { @apply border-purple-400/40 text-purple-300; }
+            .lanthanide { @apply border-pink-400/40 text-pink-300; }
+            .actinide { @apply border-indigo-400/40 text-indigo-300; }
         }
 
-        /* Moving Starfield Background */
-        body {
-            background-color: var(--bg-deep);
-            background-image: 
-                radial-gradient(circle at 50% 10%, #1e293b 0%, #030712 70%),
-                url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/svg" width="400" height="400" viewBox="0 0 400 400"%3E%3Cdefs%3E%3Cpattern id="star" patternUnits="userSpaceOnUse" width="100" height="100"%3E%3Ccircle cx="50" cy="50" r="1" fill="%23fff" fill-opacity="0.3" /%3E%3Ccircle cx="10" cy="90" r="0.5" fill="%23fff" fill-opacity="0.1" /%3E%3Cpattern%3E%3C/defs%3E%3Crect width="400" height="400" fill="url(%23star)" /%3E%3C/svg%3E');
-            color: var(--text-primary);
-            font-family: 'Orbitron', sans-serif;
-            margin: 0;
-            padding: 10px;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            overflow-x: hidden;
-            animation: nebulaPulse 10s infinite alternate;
-        }
-
-        @keyframes nebulaPulse {
-            0% { background-position: 0% 0%, 0 0; }
-            100% { background-position: 0% 5%, 50px 50px; }
-        }
-
-        /* Neon Header */
-        header { text-align: center; margin-bottom: 25px; width: 100%; position: relative; z-index: 10; }
-        header h1 { 
-            font-size: clamp(1.8rem, 6vw, 3rem);
-            font-weight: 900; 
-            letter-spacing: -1px; 
-            margin: 15px 0 5px 0; 
-            background: linear-gradient(to bottom, #fff 40%, var(--accent) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            filter: drop-shadow(0 0 15px rgba(56, 189, 248, 0.6));
-            text-transform: uppercase;
-        }
-        header::after {
-            content: "QUANTUM DATABASE V1.0";
-            font-size: 0.7rem;
-            color: var(--accent);
-            opacity: 0.6;
-            letter-spacing: 3px;
-        }
-
-        /* Sleek Search Input */
-        #search { 
-            padding: 14px 25px; width: 90%; max-width: 500px; 
-            border-radius: 4px; border: 1px solid var(--border);
-            background: rgba(3, 7, 18, 0.8); color: white; 
-            margin: 15px auto; display: block;
-            backdrop-filter: blur(10px);
-            transition: all 0.3s ease;
-            font-size: 16px;
-            font-family: 'JetBrains Mono', monospace;
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
-        }
-        #search:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 20px rgba(56, 189, 248, 0.4); }
-
-        /* Holographic Detail Panel */
-        #detail-panel {
-            position: sticky; top: 10px; z-index: 1000;
-            background: var(--glass); backdrop-filter: blur(20px);
-            margin-bottom: 35px; padding: 20px;
-            border-radius: 8px; border: 1px solid var(--border);
-            width: 95%; max-width: 950px; 
-            display: flex; flex-direction: row; gap: 25px; align-items: center;
-            box-shadow: var(--panel-shadow);
-            transition: all 0.4s ease;
-            overflow: hidden;
-        }
-        #detail-panel::before {
-            content:''; position: absolute; top:0; left:0; width: 100%; height: 2px;
-            background: linear-gradient(90deg, transparent, var(--accent), transparent);
-        }
-
-        .big-view { text-align: center; min-width: 120px; position: relative;}
-        #big-symbol { 
-            font-size: 4rem; font-weight: 900; color: var(--accent); margin: 0; 
-            filter: drop-shadow(0 0 15px var(--accent));
-            animation: symbolGlow 2s infinite alternate;
-        }
-        @keyframes symbolGlow {
-            0% { filter: drop-shadow(0 0 10px var(--accent)); }
-            100% { filter: drop-shadow(0 0 25px var(--accent)); }
-        }
-
-        #el-name { 
-            font-weight: 700; letter-spacing: 2px; font-size: 0.9rem; 
-            color: white; text-transform: uppercase; margin-top: -5px; display: block;
-        }
-        
-        .stats-grid { 
-            display: grid; grid-template-columns: repeat(2, 1fr); 
-            gap: 10px; width: 100%; 
-        }
-        .stat-item { 
-            background: rgba(255,255,255,0.02); padding: 10px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.05); 
-            transition: transform 0.3s ease;
-        }
-        .stat-item:hover { background: rgba(56, 189, 248, 0.05); transform: translateX(5px); }
-
-        .stat-item strong { 
-            color: var(--accent); display: block; font-size: 0.65rem; text-transform: uppercase; opacity: 0.9; letter-spacing: 1px;
-            font-family: 'Orbitron', sans-serif;
-        }
-        .stat-item span { font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; color: #d1d5db; word-break: break-all; }
-
-        /* The scaling container for Mobile */
-        .table-wrapper { 
-            width: 100%; 
-            display: flex;
-            justify-content: center;
-            overflow-x: auto; 
-            padding-bottom: 50px;
-            position: relative;
-        }
-
-        /* Periodic Table Grid */
-        #periodic-table {
-            display: grid; 
-            grid-template-columns: repeat(18, 1fr);
-            grid-template-rows: repeat(10, 1fr);
-            gap: 6px; 
-            width: 1300px; /* Base width for desktop */
-            margin: 0 auto;
-            position: relative;
-        }
-
-        /* Advanced Element Cell Design */
-        .element {
-            background: var(--glass); border: 1px solid var(--border);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            cursor: pointer; transition: all 0.25s cubic-bezier(0.23, 1, 0.32, 1);
-            border-radius: 4px; position: relative;
-            aspect-ratio: 1 / 1.15;
-            overflow: hidden;
-        }
-        
-        /* Subtle internal pattern */
-        .element::before {
-            content:''; position: absolute; inset: 0;
-            background-image: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/svg" width="4" height="4" viewBox="0 0 4 4"%3E%3Cpath d="M1 1h1v1H1z" fill="%23fff" fill-opacity="0.03"/%3E%3C/svg%3E');
-            opacity: 0.5;
-        }
-
-        /* Hover Interaction */
-        .element:hover { 
-            transform: scale(1.3) translateY(-5px) rotateX(10deg); 
-            z-index: 50; 
-            background: rgba(13, 17, 23, 0.9);
-            border-color: #fff;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.6), 0 0 15px rgba(255,255,255,0.3);
-        }
-
-        /* Selection highlight */
-        .element.selected {
-            border-color: var(--accent);
-            box-shadow: 0 0 20px rgba(56, 189, 248, 0.5);
-            background: rgba(56, 189, 248, 0.1);
-        }
-
-        .num { font-size: 0.65rem; position: absolute; top: 4px; left: 6px; font-family: 'JetBrains Mono', monospace; color: var(--text-secondary); }
-        .sym { font-size: 1.4rem; font-weight: 700; color: white; position: relative; z-index: 2; }
-        .name-label { font-size: 0.55rem; color: var(--text-secondary); text-align: center; display: block; white-space: nowrap; overflow: hidden; width: 90%; text-transform: uppercase; letter-spacing: 1px;}
-
-        /* Neon Category Indicators */
-        .alkali { border-color: var(--alkali); color: var(--alkali); box-shadow: inset 0 0 10px rgba(255, 71, 71, 0.2); } 
-        .alkaline { border-color: var(--alkaline); color: var(--alkaline); box-shadow: inset 0 0 10px rgba(255, 159, 67, 0.2); }
-        .transition { border-color: var(--transition); color: var(--transition); box-shadow: inset 0 0 10px rgba(255, 255, 46, 0.2); } 
-        .post-trans { border-color: var(--post-trans); color: var(--post-trans); box-shadow: inset 0 0 10px rgba(36, 255, 139, 0.2); }
-        .metalloid { border-color: var(--metalloid); color: var(--metalloid); box-shadow: inset 0 0 10px rgba(0, 230, 255, 0.2); } 
-        .nonmetal { border-color: var(--nonmetal); color: var(--nonmetal); box-shadow: inset 0 0 10px rgba(77, 148, 255, 0.2); }
-        .noble { border-color: var(--noble); color: var(--noble); box-shadow: inset 0 0 10px rgba(188, 76, 255, 0.2); } 
-        .lanthanide { border-color: var(--lanthanide); color: var(--lanthanide); box-shadow: inset 0 0 10px rgba(255, 105, 180, 0.2); }
-        .actinide { border-color: var(--actinide); color: var(--actinide); box-shadow: inset 0 0 10px rgba(157, 102, 255, 0.2); }
-
-        /* Match Symbol Color to Category for extra pop */
-        .element.alkali .sym { color: var(--alkali); filter: drop-shadow(0 0 5px var(--alkali)); }
-        .element.alkaline .sym { color: var(--alkaline); filter: drop-shadow(0 0 5px var(--alkaline)); }
-        .element.transition .sym { color: var(--transition); filter: drop-shadow(0 0 5px var(--transition)); }
-        .element.post-trans .sym { color: var(--post-trans); filter: drop-shadow(0 0 5px var(--post-trans)); }
-        .element.metalloid .sym { color: var(--metalloid); filter: drop-shadow(0 0 5px var(--metalloid)); }
-        .element.nonmetal .sym { color: var(--nonmetal); filter: drop-shadow(0 0 5px var(--nonmetal)); }
-        .element.noble .sym { color: var(--noble); filter: drop-shadow(0 0 5px var(--noble)); }
-        .element.lanthanide .sym { color: var(--lanthanide); filter: drop-shadow(0 0 5px var(--lanthanide)); }
-        .element.actinide .sym { color: var(--actinide); filter: drop-shadow(0 0 5px var(--actinide)); }
-
-        .hidden { display: none !important; }
-
-        /* Detail Panel Animations */
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(10px); }
+        /* Detail panel animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
             to { opacity: 1; transform: translateY(0); }
         }
-
-        #info.visible .stat-item { animation: slideIn 0.3s ease forwards; opacity: 0; }
-        #info.visible .stat-item:nth-child(1) { animation-delay: 0.1s; }
-        #info.visible .stat-item:nth-child(2) { animation-delay: 0.15s; }
-        #info.visible .stat-item:nth-child(3) { animation-delay: 0.2s; }
-        #info.visible .stat-item:nth-child(4) { animation-delay: 0.25s; }
-
-        /* Responsive Adjustments */
-        @media (max-width: 1300px) {
-            #periodic-table { transform: scale(0.8); transform-origin: top center; width: 1100px; }
-            .table-wrapper { height: 750px; }
-        }
-
-        @media (max-width: 900px) {
-            #detail-panel { flex-direction: column; gap: 15px; text-align: center; }
-            .stats-grid { grid-template-columns: repeat(2, 1fr); }
-            #periodic-table { transform: scale(0.6); width: 800px; gap: 4px; }
-            .table-wrapper { height: 600px; }
-            #big-symbol { font-size: 3rem; }
-            .sym { font-size: 1.2rem; }
-        }
-
-        @media (max-width: 600px) {
-            #periodic-table { transform: scale(0.45); width: 600px; }
-            .table-wrapper { height: 450px; }
-            .stats-grid { grid-template-columns: 1fr; }
-        }
+        .animate-fade-in { animation: fadeIn 0.3s ease forwards; }
     </style>
 </head>
-<body>
+<body class="bg-mat-bg text-mat-textPrimary font-sans min-h-screen p-2 md:p-4 flex flex-col items-center overflow-x-hidden">
 
-    <header>
-        <h1>Periodic Table</h1>
-        <input type="text" id="search" placeholder="Query element (Name, Symbol, No.)...">
+    <header class="w-full text-center mb-6 mt-4">
+        <h1 class="text-3xl md:text-5xl font-bold tracking-tight text-white mb-4">Periodic Table</h1>
+        <input 
+            type="text" 
+            id="search" 
+            placeholder="Search element by name, symbol, or number..." 
+            class="w-[95%] max-w-lg mx-auto block px-4 py-3 rounded-lg bg-mat-surface border border-mat-border text-white placeholder-mat-textSecondary focus:outline-none focus:border-mat-primary focus:ring-1 focus:ring-mat-primary transition-colors shadow-sm font-mono text-sm md:text-base"
+        >
     </header>
 
-    <div id="detail-panel">
-        <div id="msg" style="width: 100%; text-align: center; opacity: 0.7; font-size: 0.9rem; letter-spacing: 1px;">Initialize data stream by selecting a quantum cell</div>
-        <div id="info" class="hidden" style="display:contents">
-            <div class="big-view">
-                <p id="big-symbol">H</p>
-                <span id="el-name"></span>
+    <div id="detail-panel" class="sticky top-2 md:top-4 z-[100] bg-mat-surface rounded-xl shadow-lg border border-mat-border w-[95%] max-w-4xl p-4 md:p-6 mb-8 flex flex-col md:flex-row gap-4 md:gap-8 items-center min-h-[120px]">
+        
+        <div id="msg" class="w-full text-center text-mat-textSecondary font-medium text-sm md:text-base">
+            Select an element to view details
+        </div>
+        
+        <div id="info" class="hidden w-full flex-col md:flex-row items-center gap-4 md:gap-8">
+            <div class="flex items-center gap-4 min-w-max md:flex-col md:gap-1 text-center">
+                <p id="big-symbol" class="text-4xl md:text-6xl font-bold text-mat-primary font-mono m-0"></p>
+                <span id="el-name" class="font-medium text-lg md:text-sm uppercase tracking-wide text-white"></span>
             </div>
-            <div class="stats-grid">
-                <div class="stat-item"><strong>Atomic Number</strong> <span id="val-num"></span></div>
-                <div class="stat-item"><strong>Atomic Weight</strong> <span id="val-weight"></span></div>
-                <div class="stat-item"><strong>Group Category</strong> <span id="val-cat"></span></div>
-                <div class="stat-item"><strong>Electron Config</strong> <span id="val-orbital"></span></div>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 w-full">
+                <div class="bg-mat-bg p-3 rounded-lg border border-mat-border flex flex-col">
+                    <strong class="text-mat-primary text-xs uppercase tracking-wider mb-1">Atomic Number</strong> 
+                    <span id="val-num" class="font-mono text-white text-sm md:text-base"></span>
+                </div>
+                <div class="bg-mat-bg p-3 rounded-lg border border-mat-border flex flex-col">
+                    <strong class="text-mat-primary text-xs uppercase tracking-wider mb-1">Atomic Weight</strong> 
+                    <span id="val-weight" class="font-mono text-white text-sm md:text-base"></span>
+                </div>
+                <div class="bg-mat-bg p-3 rounded-lg border border-mat-border flex flex-col">
+                    <strong class="text-mat-primary text-xs uppercase tracking-wider mb-1">Category</strong> 
+                    <span id="val-cat" class="font-mono text-white text-sm md:text-base capitalize"></span>
+                </div>
+                <div class="bg-mat-bg p-3 rounded-lg border border-mat-border flex flex-col">
+                    <strong class="text-mat-primary text-xs uppercase tracking-wider mb-1">Electron Config</strong> 
+                    <span id="val-orbital" class="font-mono text-white text-sm md:text-base break-all"></span>
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="table-wrapper">
-        <main id="periodic-table"></main>
+    <div class="w-full max-w-[100vw] overflow-x-auto pb-8 custom-scrollbar block">
+        <main id="periodic-table" class="grid grid-cols-[repeat(18,1fr)] grid-rows-[repeat(10,1fr)] gap-1 md:gap-1.5 min-w-[900px] w-max mx-auto px-4 relative"></main>
     </div>
 
     <script>
-        // Data unchanged from source
         const elements = [
             {n:1,s:'H',name:'Hydrogen',w:'1.008',cat:'nonmetal',c:1,r:1,o:'1s¹'},
             {n:2,s:'He',name:'Helium',w:'4.0026',cat:'noble',c:18,r:1,o:'1s²'},
@@ -411,18 +262,26 @@
 
                 const div = document.createElement('div');
                 div.className = `element ${el.cat}`;
+                
+                // Set explicit grid placements using inline styles so Tailwind's JIT CDN doesn't miss them
                 div.style.gridColumn = el.c;
                 div.style.gridRow = el.r;
-                div.innerHTML = `<span class="num">${el.n}</span><span class="sym">${el.s}</span><span class="name-label">${el.name}</span>`;
+                
+                div.innerHTML = `
+                    <span class="absolute top-[2px] left-[4px] text-[0.6rem] font-mono text-mat-textSecondary leading-none">${el.n}</span>
+                    <span class="text-lg md:text-xl font-bold text-white relative z-10 leading-none">${el.s}</span>
+                    <span class="text-[0.5rem] md:text-[0.55rem] text-mat-textSecondary text-center uppercase tracking-wide w-[90%] truncate mt-[2px]">${el.name}</span>
+                `;
 
                 const update = () => {
-                    msg.style.display = 'none';
+                    msg.classList.add('hidden');
                     info.classList.remove('hidden');
+                    info.classList.add('flex');
                     
-                    // Force reflow for animation restart
-                    info.classList.remove('visible');
+                    // Restart animation
+                    info.classList.remove('animate-fade-in');
                     void info.offsetWidth; 
-                    info.classList.add('visible');
+                    info.classList.add('animate-fade-in');
 
                     document.getElementById('el-name').innerText = el.name;
                     document.getElementById('big-symbol').innerText = el.s;
@@ -431,7 +290,6 @@
                     document.getElementById('val-cat').innerText = el.cat.replace('-', ' ');
                     document.getElementById('val-orbital').innerText = el.o;
                     
-                    // Visual feedback for selection
                     document.querySelectorAll('.element').forEach(e => e.classList.remove('selected'));
                     div.classList.add('selected');
                 };
